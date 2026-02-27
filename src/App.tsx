@@ -15,8 +15,6 @@ import { Link } from "react-router-dom";
 
 import background1 from "../src/assets/background1.png";
 import background2 from "../src/assets/background2.png";
-import background3 from "../src/assets/background3.png";
-
 import photo1 from "../src/assets/photo1.jpg";
 
 import fiorino from "../src/assets/fiorino.png";
@@ -252,12 +250,12 @@ const LandingPage: React.FC = () => {
             whileInView={{ x: 0, opacity: 1, rotate: 0 }}
             transition={{ duration: 1 }}
             className="
-        w-80 md:w-[520px]
+        w-80 md:w-130
         drop-shadow-[0_60px_80px_rgba(0,0,0,0.7)]
         absolute
-        right-[-40px]
-        md:right-[-120px]
-        bottom-[-40px]
+        -right-10
+        md:-right-30
+        -bottom-10
         z-20
         pointer-events-none
       "
