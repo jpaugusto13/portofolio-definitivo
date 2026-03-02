@@ -1,10 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AliceCarousel from "react-alice-carousel";
-import "react-alice-carousel/lib/alice-carousel.css";
 import {
-  Folder,
-  Sparkles,
+  Folder as FolderIcon,
   ArrowLeft,
   X,
   Image as ImageIcon,
@@ -58,45 +55,44 @@ export default function Portfolio() {
       images: grouped[folder],
     }));
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFolders(formatted);
 
     const all = Object.values(grouped).flat();
-    const random = [...all].sort(() => 0.5 - Math.random()).slice(0, 10);
+    const random = [...all].sort(() => 0.5 - Math.random()).slice(0, 8);
     setHighlights(random);
   }, []);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     touchStartX.current = e.touches[0].clientX;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!touchStartX.current) return;
     const diff = e.changedTouches[0].clientX - touchStartX.current;
     if (diff > 80) setSelectedFolder(null);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_40%)] pointer-events-none" />
-
-      <div className="relative max-w-7xl mx-auto px-5 md:px-12 py-10">
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto px-5 md:px-12 py-10">
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-14">
           <div className="flex items-center gap-4">
-            <img src={logo} className="h-10" />
+            <img src={logo} className="h-10" alt="Logo" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
                 Portfólio de Estampas
               </h1>
               <p className="text-zinc-400 text-sm">
-                Navegue, visualize e aplique no mockup
+                Explore todas as coleções disponíveis
               </p>
             </div>
           </div>
 
           <div className="flex gap-6 text-sm text-zinc-400">
             <div className="flex items-center gap-2">
-              <Folder size={16} />
+              <FolderIcon size={16} />
               {folders.length}
             </div>
             <div className="flex items-center gap-2">
@@ -106,31 +102,41 @@ export default function Portfolio() {
           </div>
         </div>
 
-        {/* PASTAS COM TRANSIÇÃO */}
+        {/* CAROUSEL */}
+        {!selectedFolder && highlights.length > 0 && (
+          <HighlightsCarousel
+            items={highlights}
+            onSelect={(src, name) => {
+              setSelectedImage(src);
+              setSelectedName(name);
+            }}
+          />
+        )}
+
+        {/* PASTAS */}
         <AnimatePresence mode="wait">
           {!selectedFolder ? (
             <motion.div
               key="folders"
-              initial={{ x: -40, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -40, opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"
             >
-              {folders.map((folder, index) => (
+              {folders.map((folder) => (
                 <motion.button
-                  key={index}
+                  key={folder.name}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedFolder(folder.name)}
-                  className="group rounded-3xl p-6 bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700 hover:border-white transition shadow-xl text-left"
+                  className="rounded-3xl p-6 bg-zinc-900 border border-zinc-700 hover:border-white transition text-left"
                 >
-                  <div className="flex justify-between items-start">
-                    <Folder size={20} />
+                  <div className="flex justify-between">
+                    <FolderIcon size={18} />
                     <span className="text-xs text-zinc-500">
                       {folder.images.length}
                     </span>
                   </div>
-                  <div className="mt-6 font-bold uppercase text-sm tracking-wider">
+                  <div className="mt-6 font-bold uppercase text-sm">
                     {folder.name}
                   </div>
                 </motion.button>
@@ -142,7 +148,6 @@ export default function Portfolio() {
               initial={{ x: 40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 40, opacity: 0 }}
-              transition={{ duration: 0.4 }}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -157,9 +162,9 @@ export default function Portfolio() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
                 {folders
                   .find((f) => f.name === selectedFolder)
-                  ?.images.map((img, i) => (
+                  ?.images.map((img) => (
                     <LazyImageCard
-                      key={i}
+                      key={img.name}
                       resolver={img.resolver}
                       name={img.name}
                       onClick={(src) => {
@@ -186,35 +191,52 @@ export default function Portfolio() {
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="relative"
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="relative w-full max-w-5xl"
             >
-              <img
-                src={selectedImage}
-                className="max-h-[85vh] max-w-[95vw] rounded-3xl shadow-2xl"
-              />
-
-              {/* MOCKUP */}
-              <div className="absolute bottom-4 right-4 w-64 h-64 rounded-xl overflow-hidden shadow-lg border border-white/20">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: `url(${selectedImage})`,
-                    backgroundRepeat: "repeat",
-                    backgroundSize: "290px",
-                  }}
-                />
+              <div className="relative">
                 <img
-                  src={mockup}
-                  className="relative w-full h-full object-contain"
+                  src={selectedImage}
+                  alt={selectedName ?? "Imagem"}
+                  className="w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
                 />
+
+                {/* MOCKUP */}
+                <div className="absolute bottom-2 right-2 w-72 h-72 rounded overflow-hidden border border-white/20 shadow-lg">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `url(${selectedImage})`,
+                      backgroundRepeat: "repeat",
+                      backgroundSize: "120px",
+                    }}
+                  />
+                  <img
+                    src={mockup}
+                    alt="Mockup"
+                    className="relative w-full h-full object-contain"
+                  />
+                </div>
+
+                <button
+                  onClick={() => setSelectedImage(null)}
+                  className="absolute top-4 right-4 bg-white text-black rounded-full p-2 shadow-lg active:scale-90 transition"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 bg-white text-black rounded-full p-2 shadow-lg active:scale-90 transition"
-              >
-                <X size={18} />
-              </button>
+              {/* BARRA DO CÓDIGO */}
+              <div className="mt-6 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 rounded-2xl px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-zinc-400">
+                    Código da Estampa
+                  </p>
+                  <p className="text-2xl font-bold text-white">
+                    {selectedName}
+                  </p>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -223,25 +245,137 @@ export default function Portfolio() {
   );
 }
 
-function LazyImageCard({ resolver, name, onClick }: any) {
+/* ---------- CAROUSEL ---------- */
+
+type HighlightsCarouselProps = {
+  items: ImageItem[];
+  onSelect: (src: string, name: string) => void;
+};
+
+function HighlightsCarousel({ items, onSelect }: HighlightsCarouselProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    const width = container.clientWidth;
+    const index = Math.round(container.scrollLeft / width);
+    setActive(index);
+  };
+
+  return (
+    <div className="mb-20">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">Destaques</h2>
+
+        <div className="flex gap-2">
+          {items.map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                active === i ? "w-6 bg-white" : "w-2 bg-zinc-600"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+      >
+        {items.map((img, i) => (
+          <div
+            key={i}
+            className="min-w-full sm:min-w-[50%] lg:min-w-[33.333%] snap-center px-3"
+          >
+            <HighlightCard
+              resolver={img.resolver}
+              name={img.name}
+              onClick={onSelect}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type HighlightCardProps = {
+  resolver: ImageResolver;
+  name: string;
+  onClick: (src: string, name: string) => void;
+};
+
+function HighlightCard({ resolver, name, onClick }: HighlightCardProps) {
   const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    resolver().then((mod: any) => setSrc(mod.default));
+    let mounted = true;
+    resolver().then((mod) => {
+      if (mounted) setSrc(mod.default);
+    });
+    return () => {
+      mounted = false;
+    };
   }, [resolver]);
 
-  if (!src) {
+  if (!src)
+    return <div className="h-64 bg-zinc-800 animate-pulse rounded-3xl" />;
+
+  return (
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      onClick={() => onClick(src, name)}
+      className="relative rounded-3xl overflow-hidden cursor-pointer shadow-2xl group"
+    >
+      <img
+        src={src}
+        alt={name}
+        className="h-64 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+      />
+
+      <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition duration-500" />
+
+      <div className="absolute bottom-4 left-4">
+        <p className="text-xs uppercase tracking-widest text-zinc-300">
+          Código
+        </p>
+        <p className="text-lg font-bold">{name}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+type LazyImageCardProps = {
+  resolver: ImageResolver;
+  name: string;
+  onClick: (src: string) => void;
+};
+
+function LazyImageCard({ resolver, name, onClick }: LazyImageCardProps) {
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    resolver().then((mod) => setSrc(mod.default));
+  }, [resolver]);
+
+  if (!src)
     return <div className="h-52 bg-zinc-800 animate-pulse rounded-2xl" />;
-  }
 
   return (
     <motion.button
       whileTap={{ scale: 0.96 }}
       onClick={() => onClick(src)}
-      className="relative rounded-2xl overflow-hidden shadow-lg"
+      className="rounded-2xl overflow-hidden shadow-lg"
     >
       <img
         src={src}
+        alt={name}
         className="h-52 w-full object-cover transition-transform duration-500 hover:scale-110"
       />
     </motion.button>
