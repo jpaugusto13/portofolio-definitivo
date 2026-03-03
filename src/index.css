@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+button {
+  cursor: pointer;
+}
 /* Firefox */
 * {
   scroll-behavior: smooth;

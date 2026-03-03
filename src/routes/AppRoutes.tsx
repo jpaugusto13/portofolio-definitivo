@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Portfolio from "../Estampas";
+import Portfolio from "../pages/Portfolio/Portfolio";
 
 export default function AppRoutes() {
   return (
